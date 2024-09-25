@@ -6,6 +6,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,15 +43,33 @@ public class AnimalController {
     }
 
     @GetMapping("/category/{category}")
-    public List<Animal> getAnimalsByCategory(@PathVariable String category) throws IOException {
-        logger.info("getAnimalsByCategory called with category: {}", category);
-        return animalService.getAnimalsByCategory(category);
+    public ResponseEntity<?> getAnimalsByCategory(@PathVariable String category) throws IOException {
+        logger.info("getAnimalsByCategory called for category = {}", category);
+    
+        List<Animal> animals = animalService.getAnimalsByCategory(category);
+    
+        if (animals.isEmpty()) {
+            logger.warn("Category not found: {}", category);
+            return new ResponseEntity<>("Category '" + category + "' not found or has no animals.", HttpStatus.NOT_FOUND);
+        }
+    
+        return new ResponseEntity<>(animals, HttpStatus.OK);
     }
 
+
     @GetMapping("/name-length/{numberOfLetters}")
-    public List<Animal> getAnimalsByNameLength(@PathVariable int numberOfLetters) throws IOException {
-        logger.info("getAnimalsByNameLength called with numberOfLetters: {}", numberOfLetters);
-        return animalService.getAnimalsByNameLength(numberOfLetters);
+    public ResponseEntity<?> getAnimalsByNameLength(@PathVariable int numberOfLetters) throws IOException {
+        logger.info("getAnimalsByNameLength called for numberOfLetters = {}", numberOfLetters);
+        
+        List<Animal> animals = animalService.getAnimalsByNameLength(numberOfLetters);
+        
+        if (animals.isEmpty()) {
+            logger.warn("No animals found with names shorter than {} characters", numberOfLetters);
+            return new ResponseEntity<>("No animals found with names shorter than " + numberOfLetters + " characters.", HttpStatus.NOT_FOUND);
+        }
+        
+        return new ResponseEntity<>(animals, HttpStatus.OK);
     }
+    
 
 }
