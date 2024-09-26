@@ -2,6 +2,9 @@ package co.edu.uptc.animals_rest.controllers;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.HashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,34 +44,24 @@ public class AnimalController {
         return animalService.getAnimalInRange(from, to);
     }
 
-    @GetMapping("/category/{category}")
-    public ResponseEntity<?> getAnimalsByCategory(@PathVariable String category) throws IOException {
-        logger.info("getAnimalsByCategory called for category = {}", category);
-    
-        List<Animal> animals = animalService.getAnimalsByCategory(category);
-    
-        if (animals.isEmpty()) {
-            logger.warn("Category not found: {}", category);
-            return new ResponseEntity<>("Category '" + category + "' not found or has no animals.", HttpStatus.NOT_FOUND);
-        }
-    
-        return new ResponseEntity<>(animals, HttpStatus.OK);
-    }
+    @GetMapping("/numberByCategory")
+    public ResponseEntity<List<Map<String, Object>>> getNumberByCategory() throws IOException {
+        logger.info("getNumberByCategory called");
 
+        // Llamada al servicio para obtener el mapa de categorías y cantidades
+        Map<String, Long> animalsByCategory = animalService.getNumberOfAnimalsByCategory();
 
-    @GetMapping("/name-length/{numberOfLetters}")
-    public ResponseEntity<?> getAnimalsByNameLength(@PathVariable int numberOfLetters) throws IOException {
-        logger.info("getAnimalsByNameLength called for numberOfLetters = {}", numberOfLetters);
-        
-        List<Animal> animals = animalService.getAnimalsByNameLength(numberOfLetters);
-        
-        if (animals.isEmpty()) {
-            logger.warn("No animals found with names shorter than {} characters", numberOfLetters);
-            return new ResponseEntity<>("No animals found with names shorter than " + numberOfLetters + " characters.", HttpStatus.NOT_FOUND);
-        }
-        
-        return new ResponseEntity<>(animals, HttpStatus.OK);
-    }
-    
+    // Convertir el mapa a una lista de mapas con el formato requerido
+        List<Map<String, Object>> result = animalsByCategory.entrySet().stream()
+            .map(entry -> {
+                Map<String, Object> categoryInfo = new HashMap<>();
+                categoryInfo.put("category", entry.getKey());
+                categoryInfo.put("number", entry.getValue());
+                return categoryInfo;
+            })
+            .collect(Collectors.toList());
+
+    return new ResponseEntity<>(result, HttpStatus.OK);
+}
 
 }

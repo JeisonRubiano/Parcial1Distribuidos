@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+
 
 import org.springframework.stereotype.Service;
 
@@ -60,17 +62,14 @@ public class AnimalService {
     
         return animales;
     }
-    public List<Animal> getAnimalsByCategory(String category) throws IOException {
-    return getAnimalAll().stream()
-            .filter(animal -> animal.getCategory().equalsIgnoreCase(category))
-            .collect(Collectors.toList());
-    }
 
-public List<Animal> getAnimalsByNameLength(int numberOfLetters) throws IOException {
-    return getAnimalAll().stream()
-            .filter(animal -> animal.getName().length() < numberOfLetters)
-            .collect(Collectors.toList());
+    public Map<String, Long> getNumberOfAnimalsByCategory() throws IOException {
+        List<Animal> animals = getAnimalAll(); // Método que retorna la lista completa de animales
+    
+        // Agrupar por categoría y contar la cantidad de animales en cada una
+        return animals.stream()
+                .collect(Collectors.groupingBy(Animal::getCategory, Collectors.counting()));
     }
-
+    
 }
 
